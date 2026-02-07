@@ -2,6 +2,7 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 import os
+import main
 
 root = tk.Tk()
 label = tk.Label(root, text="C# Transcript Software").grid(row=0, column=0)
@@ -16,3 +17,9 @@ panel = tk.Label(root, image=img).grid(row=3, column=0)
 canvas = tk.Canvas(root, width=400, height=300).grid(row=4, column=0)
 
 root.mainloop()
+
+def transcribe():
+    url = entry.get()   # get the URL typed by the user
+    print("URL entered:", url)
+
+    main.user_input(url)           # call function in main.py

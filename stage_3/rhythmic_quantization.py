@@ -98,11 +98,12 @@ def verify_header(midi):
         raise ValueError('bad midifile: MThd expected, got {this} of length {L} instead', hdr, length)
     return
 
-def main():
+def rhythmic_main(filename):
     # 0) input: MIDI, tempo
     base_midi = MidiFile()
     aligned_midi = MidiFile()
-    base_midi.read("stage_3/mil_dreams_low_priority.mid")
+    # base_midi.read("stage_3/mil_dreams_low_priority.mid")
+    base_midi.read(filename)
 
     song_tempo = float(input("Enter a tempo (beats per minute): "))
 

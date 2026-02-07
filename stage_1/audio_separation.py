@@ -29,7 +29,7 @@ def url_to_mp3(url):
         filename = ydl.prepare_filename(info_dict)
         filename = Path(filename).with_suffix(".mp3")
 
-    print("Downloaded:", filename)
+    # print("Downloaded:", filename)
     return filename
 
 def mp3_to_wav(mp3_file):
@@ -44,12 +44,13 @@ def mp3_to_wav(mp3_file):
     cmd = [
         "ffmpeg",
         "-y",
+        "-loglevel", "quiet",
         "-i", str(mp3_file),
         str(wav_file)
     ]
 
     subprocess.run(cmd, check=True)
-    print("Converted to WAV:", wav_file)
+    # print("Converted to WAV:", wav_file)
 
     return wav_file
 
@@ -70,16 +71,16 @@ def separate_with_spleeter(wav_file):
         str(wav_file)
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    print(result.stdout)
-    print(result.stderr)
+    result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+    # print(result.stdout)
+    # print(result.stderr)
 
     song_folder = out_dir / wav_file.stem
     vocals = song_folder / "vocals.wav"
     accompaniment = song_folder / "accompaniment.wav"
 
-    print("Vocals:", vocals)
-    print("Accompaniment:", accompaniment)
+    # print("Vocals:", vocals)
+    # print("Accompaniment:", accompaniment)
 
     return vocals, accompaniment
 
@@ -89,9 +90,9 @@ def audio_separation(url):
     wav_file = mp3_to_wav(mp3_file)
     vocals, accompaniment = separate_with_spleeter(wav_file)
 
-    print("Done!")
-    print("Vocals saved at:", vocals)
-    print("Accompaniment saved at:", accompaniment)
+    # print("Done!")
+    # print("Vocals saved at:", vocals)
+    # print("Accompaniment saved at:", accompaniment)
 
     # return vocals, accompaniment
     return wav_file, vocals, accompaniment
