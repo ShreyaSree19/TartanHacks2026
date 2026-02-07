@@ -29,9 +29,7 @@ def preprocess_audio(y, sr, lowcut=80.0, highcut=880.0):
     
     return filtered_y
 
-# --- EXTRACTION FUNCTIONS ---
-def extract_melody(vocal_path, output_filename='mil_dreams.mid', bpm=120):
-    print(f"\n--- Stage 2A: Processing Melody from {vocal_path} ---")
+def extract_melody(vocal_path, output_filename='mil_dreams_low_priority.mid', bpm=120):
     
     y, sr = librosa.load(vocal_path, sr=None)
     y_filtered = preprocess_audio(y, sr)
@@ -41,69 +39,53 @@ def extract_melody(vocal_path, output_filename='mil_dreams.mid', bpm=120):
 
     _, midi_data, _ = predict(temp_filtered_path)
 
-    # # --- FIX 1: SET EXPLICIT TEMPO AND TIME SIGNATURE ---
-    # # This prevents MuseScore from guessing 3/4 time.
-    # midi_data.tempo_relabel(bpm) 
-    
-    # # Add 4/4 time signature at time 0
-    # ts = pretty_midi.TimeSignature(4, 4, 0)
-    # midi_data.time_signature_changes.append(ts)
-
     for instrument in midi_data.instruments:
-        # --- FIX 2: NOISE REDUCTION (QUANTIZATION & CLEANUP) ---
-        # 1. Remove very short "glitch" notes (less than 50ms)
-        instrument.notes = [n for n in instrument.notes if (n.end - n.start) > 0.05]
+        # 1. NEW SORTING: Sort by start time, then by PITCH (lowest first)
+        # This ensures the 'accepted' note is the bottom one in an octave pair
+        instrument.notes.sort(key=lambda x: (x.start, x.pitch))
         
-        # 2. Normalize Velocity
-        for note in instrument.notes:
-            note.velocity = 100 
+        cleaned_notes = []
+        if instrument.notes:
+            for current_note in instrument.notes:
+                is_ghost = False
+                
+                for accepted in cleaned_notes:
+                    # If notes start at the same time
+                    if abs(current_note.start - accepted.start) < 0.05:
+                        interval = abs(current_note.pitch - accepted.pitch)
+                        # If it's the same note or an octave higher, skip it
+                        if interval == 0 or interval % 12 == 0:
+                            is_ghost = True
+                            break
+                
+                if not is_ghost:
+                    cleaned_notes.append(current_note)
 
-        # Fix CC Volume
-        cc_volume = pretty_midi.ControlChange(number=7, value=127, time=0)
-        instrument.control_changes.append(cc_volume)
+        # 2. Monophonic Truncation (No two notes at once)
+        final_notes = []
+        if cleaned_notes:
+            cleaned_notes.sort(key=lambda x: x.start)
+            active = cleaned_notes[0]
+            for next_n in cleaned_notes[1:]:
+                if next_n.start < active.end:
+                    active.end = next_n.start 
+                
+                if active.end > active.start + 0.05:
+                    final_notes.append(active)
+                active = next_n
+            final_notes.append(active)
+
+        instrument.notes = final_notes
+        
+        # Reset velocity for a clean score
+        for n in instrument.notes:
+            n.velocity = 100
 
     midi_data.write(output_filename)
-    
-    if os.path.exists(temp_filtered_path):
-        os.remove(temp_filtered_path)
-        
-    print(f"✓ Success: Saved {output_filename} at {bpm} BPM in 4/4")
+    if os.path.exists(temp_filtered_path): os.remove(temp_filtered_path)
+    print(f"Success: Saved lower-octave priority MIDI to {output_filename}")
     return output_filename
 
-# def extract_melody(vocal_path, output_filename='mil_dreams.mid'):
-#     """Extracts MIDI from vocals after applying a bandpass filter."""
-#     print(f"\n--- Stage 2A: Processing Melody from {vocal_path} ---")
-    
-#     # Load audio and apply the filter
-#     y, sr = librosa.load(vocal_path, sr=None)
-#     y_filtered = preprocess_audio(y, sr)
-    
-#     # Basic Pitch usually takes a path, so we save a temporary clean version
-#     temp_filtered_path = "temp_vocal_cleaned.wav"
-#     sf.write(temp_filtered_path, y_filtered, sr)
-
-#     # Run Basic Pitch inference
-#     print("  > Running MIDI Inference (Basic Pitch)...")
-#     _, midi_data, _ = predict(temp_filtered_path)
-
-#     for instrument in midi_data.instruments:
-#         # Fix 2: Maximize Main Volume (CC 7)
-#         cc_volume = pretty_midi.ControlChange(number=7, value=127, time=0)
-#         instrument.control_changes.append(cc_volume)
-        
-#         # Fix 3: Maximize Expression (CC 11)
-#         cc_expression = pretty_midi.ControlChange(number=11, value=127, time=0)
-#         instrument.control_changes.append(cc_expression)
-
-#     # Save the repaired MIDI file
-#     midi_data.write(output_filename)
-    
-#     # Cleanup
-#     if os.path.exists(temp_filtered_path):
-#         os.remove(temp_filtered_path)
-        
-#     print(f"✓ Success: Saved {output_filename}")
-#     return output_filename
 
 def extract_chords(instrumental_path, output_filename='chords.json'):
     """Analyzes harmonic content to identify major/minor chords."""
