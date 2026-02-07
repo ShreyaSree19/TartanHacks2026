@@ -65,7 +65,7 @@ def separate_with_spleeter(wav_file):
     cmd = [
         "spleeter",
         "separate",
-        "-p", "spleeter:2stems",
+        "-p", "spleeter:2stems-16kHz",
         "-o", str(out_dir),
         str(wav_file)
     ]
