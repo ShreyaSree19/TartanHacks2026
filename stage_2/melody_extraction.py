@@ -6,6 +6,7 @@ import os
 import pretty_midi
 from basic_pitch.inference import predict
 from scipy.signal import butter, sosfilt
+from pathlib import Path
 
 # --- PREPROCESSING UTILITY ---
 
@@ -47,6 +48,26 @@ def extract_melody(vocal_path, output_filename='mil_dreams_low_priority.mid', bp
         cleaned_notes = []
         if instrument.notes:
             for current_note in instrument.notes:
+                if not cleaned_notes:
+                    cleaned_notes.append(current_note)
+                    continue
+                
+                # Reference the last note we successfully added
+                last_note = cleaned_notes[-1]
+                
+                # --- OCTAVE JUMP PREVENTION LOGIC ---
+                # Check if it's the same pitch class (e.g., C) but a different octave
+                # (Note: abs(diff) % 12 == 0 ensures it's exactly 12, 24, etc. semitones apart)
+                pitch_diff = current_note.pitch - last_note.pitch
+                
+                if pitch_diff > 0 and pitch_diff % 12 == 0:
+                    # Force the current note to match the previous octave
+                    current_note.pitch = last_note.pitch
+                
+                # --- GHOST/OVERLAP PREVENTION ---
+                # If notes start at nearly the same time and are the same pitch (now corrected)
+                is_ghost = False
+
                 is_ghost = False
                 
                 for accepted in cleaned_notes:
@@ -138,7 +159,7 @@ def extract_chords(instrumental_path, output_filename='chords.json'):
 
 # --- MAIN EXECUTION BLOCK ---
 
-def melody_main(original_audio_path, v_test_i, i_test_path):
+def melody_main(original_audio_path, v_test_path):
     print("Initializing Stage 2 Test (30 Second Trim)...")
 
     # Ensure paths exist
@@ -146,8 +167,15 @@ def melody_main(original_audio_path, v_test_i, i_test_path):
     # v_test_path = "v_test_30s.wav"
     # i_test_path = "i_test_30s.wav"
 
-    if not os.path.exists("inputs"):
-        os.makedirs("inputs")
+    if not os.path.exists("mid-files"):
+        os.makedirs("mid-files")
+
+    BASE_DIR = Path(__file__).parent.parent
+
+    # Define the MIDI directory
+    MIDI_DIR = BASE_DIR / "mid-files"
+    MIDI_DIR.mkdir(parents=True, exist_ok=True)
+    new_mid_path = MIDI_DIR / f"{original_audio_path.stem}.mid"
 
     try:
         # 1. TRIMMING STEP
@@ -155,29 +183,30 @@ def melody_main(original_audio_path, v_test_i, i_test_path):
             print(f"Reading {original_audio_path}...")
             y_30s, sr = librosa.load(original_audio_path, offset=60, duration=30)        
             sf.write(v_test_path, y_30s, sr)
-            sf.write(i_test_path, y_30s, sr) 
+            # sf.write(i_test_path, y_30s, sr) 
         else:
             print(f"Error: {original_audio_path} not found. Please place a file there.")
             exit()
         
         # 2. RUN EXTRACTION
-        melody_file = extract_melody(v_test_path)
-        chord_data = extract_chords(i_test_path)
+        melody_file = extract_melody(v_test_path, new_mid_path)
+        # chord_data = extract_chords(i_test_path)
         
         # 3. SUMMARY
         print("\n" + "="*30)
         print("EXTRACTION COMPLETE")
         print("="*30)
-        print(f"First 5 Chords: {[c['chord'] for c in chord_data[:5]]}")
+        # print(f"First 5 Chords: {[c['chord'] for c in chord_data[:5]]}")
         print(f"MIDI File: {os.path.abspath(melody_file)}")
-        print(f"JSON File: {os.path.abspath('chords.json')}")
+        # print(f"JSON File: {os.path.abspath('chords.json')}")
 
     except Exception as e:
         print(f"\nError during execution: {e}")
     
-    finally:
+    # finally:
         # CLEANUP: Remove the temporary 30s wav files
-        for f in [v_test_path, i_test_path]:
-            if os.path.exists(f):
-                os.remove(f)
-                print(f"Cleaned up {f}")
+        # for f in [v_test_path, i_test_path]:
+        # for f in [v_test_path]:
+        #     if os.path.exists(f):
+        #         # os.remove(f)
+        #         print(f"Cleaned up {f}")
