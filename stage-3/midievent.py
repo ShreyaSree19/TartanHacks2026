@@ -92,11 +92,23 @@ class MidiEvent:
     _dataA: int = 0
     _dataB: int = 0
 
+    # # meta event fields
+    # meta_type: int = 0
+    # meta_data: bytes = b''
+
     def set(self, t: MidiEventType, c: int, a: int, b: int):
         self._type = t
         self._channel = c
         self._dataA = a
         self._dataB = b
+
+    # def set_meta(self, meta_type: int, data: bytes):
+    #     self._type = MidiEventType.META
+    #     self.meta_type = meta_type & 0xff
+    #     if data is None:
+    #         self.meta_data = b''
+    #     else:
+    #         self.meta_data = data
 
     def type(self) -> MidiEventType:
         return self._type

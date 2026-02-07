@@ -32,7 +32,17 @@ def align_midi_ticks(midi, bpm, sixteenth, triplet_u):
     aligned._tempoMap[0] = bpm / 60.0 # in units of beats per second
     aligned._tracks.clear()
 
+    # for og_track in midi._tracks:
+    #     print("Processing track with", len(og_track.events()), "events")
+    #     aligned._tracks.append(MidiTrack(aligned))
+    #     align_click_acc = 0
+
+    #     # 2) For each OG Track Event
+    #     for click, og_event in sorted(og_track.events().items()):
+    #         aligned._tracks[-1].events()[click] = og_event
+
     for og_track in midi._tracks:
+        print("Processing track with", len(og_track.events()), "events")
         aligned._tracks.append(MidiTrack(aligned))
         align_click_acc = 0
 
@@ -40,15 +50,22 @@ def align_midi_ticks(midi, bpm, sixteenth, triplet_u):
         for click, og_event in sorted(og_track.events().items()):
             # og_track_tempo = midi._tempoMap[click]
             # og_track_tempo = 1000000.0 / midi._tempoMap[0] # assuming for now the base midi don't change tempo
-            og_tempo_raw = None
-            try:
-                og_tempo_raw = midi._tempoMap.get(click, midi._tempoMap.get(0, None))
-            except Exception:
-                og_tempo_raw = None
+            # og_tempo_raw = None
+            # try:
+            #     og_tempo_raw = midi._tempoMap.get(click, midi._tempoMap.get(0, None))
+            # except Exception:
+            #     og_tempo_raw = None
 
-            og_track_tempo = 120.0 # assuming for now the base midi don't change tempo
-            if og_tempo_raw is not None:
-                og_track_tempo = 1000000.0 / og_tempo_raw # convert microminutes to BPM
+            # og_track_tempo = 120.0 # assuming for now the base midi don't change tempo
+            # if og_tempo_raw is not None:
+            #     # og_track_tempo = 60000000.0 / og_tempo_raw # convert microseconds to BPM
+            #     og_track_tempo =  og_tempo_raw * 60 # convert microseconds to BPM
+
+            og_track_tempo = 0
+            try:
+                og_track_tempo = midi._tempoMap.get(click, midi._tempoMap.get(0, None)) * 60
+            except Exception:
+                og_track_tempo = 120.0
 
             # a) Convert delta ticks to seconds using track tempo
             # b/c/d) Round to nearest 16th note or triple unit
@@ -64,14 +81,14 @@ def align_midi_ticks(midi, bpm, sixteenth, triplet_u):
             # e) Convert delta time to ticks in new tempo
             # f) Create new track event
             new_tick_delta = seconds_to_ticks(rounded_seconds, bpm, midi._division)
-            print(click, "->", new_tick_delta)
-            aligned._tracks[-1].events()[align_click_acc + new_tick_delta] = og_event
+            print(click, "->", new_tick_delta, " og track tempo:", og_track_tempo)
             align_click_acc += new_tick_delta
-            aligned._tempoMap[align_click_acc] = 1000000.0 / bpm            
+            aligned._tracks[-1].events()[align_click_acc] = og_event
+            aligned._tempoMap[align_click_acc] = float(bpm / 60.0)
             
     aligned.status = midi.status
     aligned.sstatus = midi.sstatus
-    print(midi._division)
+    # print(midi._division)
     return aligned
 
 def verify_header(midi):
