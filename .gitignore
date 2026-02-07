@@ -1,3 +1,9 @@
+.DS_Store
+ø
+
+stage_1/pretrained_models/
+
+
 # virtual environments
 spleeter310/
 stage_1/spleeter310/
