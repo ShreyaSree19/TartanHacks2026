@@ -138,13 +138,13 @@ def extract_chords(instrumental_path, output_filename='chords.json'):
 
 # --- MAIN EXECUTION BLOCK ---
 
-if __name__ == "__main__":
+def melody_main(original_audio_path, v_test_i, i_test_path):
     print("Initializing Stage 2 Test (30 Second Trim)...")
 
     # Ensure paths exist
-    original_audio_path = "inputs/vocals.wav"
-    v_test_path = "v_test_30s.wav"
-    i_test_path = "i_test_30s.wav"
+    # original_audio_path = "inputs/vocals.wav"
+    # v_test_path = "v_test_30s.wav"
+    # i_test_path = "i_test_30s.wav"
 
     if not os.path.exists("inputs"):
         os.makedirs("inputs")
