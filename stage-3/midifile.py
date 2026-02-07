@@ -65,14 +65,15 @@ class MidiFile:
         self.status = -1
         self.sstatus = -1
         self.click = 0
-        self._tempoMap: Dict[int, float] = {}
+        self._tempoMap: Dict[int, float] = {} # beats per second
 
     # ------------------------- low-level reads -------------------------
     def _read(self, n: int) -> bytes:
         data = self.fp.read(n)
         print(bytes(data), '\n')
         if data is None or len(data) != n:
-            raise EOFError("bad midifile: unexpected EOF (got to bytes:", self.curPos, ", tried to read n bytes: ", n, ")")
+            raise EOFError("bad midifile: unexpected EOF (got to bytes:", self.curPos, ", tried to read n bytes: ", n, " with data left: ", len(data), ")")
+            # raise EOFError("bad midifile: unexpected EOF")
         self.curPos += n
         return data
 
@@ -152,6 +153,7 @@ class MidiFile:
         while True:
             event = MidiEvent()
             rv = self.read_event(event)
+            print("Read an event!")
             if rv == 0:
                 track.events()[self.click] = event
             elif rv == 2:
@@ -200,8 +202,8 @@ class MidiFile:
             if dataLen:
                 data = self._read(dataLen)
             if mtype == MetaEventConstants.META_TEMPO and dataLen >= 3:
-                tempo = (data[0] << 16) + (data[1] << 8) + data[2]
-                t = 1000000.0 / float(tempo)
+                tempo = (data[0] << 16) + (data[1] << 8) + data[2] # stored as usec per beat
+                t = 1000000.0 / float(tempo) # 1,000,000 usec per second / tempo in usec per beat = beats per second
                 self._tempoMap[self.click] = t
             if mtype == MetaEventConstants.META_EOT:
                 return 2
