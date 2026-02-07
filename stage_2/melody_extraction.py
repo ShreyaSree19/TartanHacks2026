@@ -180,7 +180,7 @@ def melody_main(original_audio_path, v_test_path):
     try:
         # 1. TRIMMING STEP
         if os.path.exists(original_audio_path):
-            print(f"Reading {original_audio_path}...")
+            # print(f"Reading {original_audio_path}...")
             y_30s, sr = librosa.load(original_audio_path, offset=60, duration=30)        
             sf.write(v_test_path, y_30s, sr)
             # sf.write(i_test_path, y_30s, sr) 
@@ -192,12 +192,12 @@ def melody_main(original_audio_path, v_test_path):
         melody_file = extract_melody(v_test_path, new_mid_path)
         # chord_data = extract_chords(i_test_path)
         
-        # 3. SUMMARY
-        print("\n" + "="*30)
-        print("EXTRACTION COMPLETE")
-        print("="*30)
-        # print(f"First 5 Chords: {[c['chord'] for c in chord_data[:5]]}")
-        print(f"MIDI File: {os.path.abspath(melody_file)}")
+        # # 3. SUMMARY
+        # print("\n" + "="*30)
+        # print("EXTRACTION COMPLETE")
+        # print("="*30)
+        # # print(f"First 5 Chords: {[c['chord'] for c in chord_data[:5]]}")
+        # print(f"MIDI File: {os.path.abspath(melody_file)}")
         # print(f"JSON File: {os.path.abspath('chords.json')}")
 
     except Exception as e:
