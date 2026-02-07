@@ -102,7 +102,7 @@ def main():
     # 0) input: MIDI, tempo
     base_midi = MidiFile()
     aligned_midi = MidiFile()
-    base_midi.read("stage-3/mil_dreams_low_priority.mid")
+    base_midi.read("stage_3/mil_dreams_low_priority.mid")
 
     song_tempo = float(input("Enter a tempo (beats per minute): "))
 
@@ -118,11 +118,11 @@ def main():
         print("TODO: Implementation for SMPTE timecode division")
         return
 
-    f = open("stage-3/mil_dreams_aligned.mid", 'wb')
+    f = open("stage_3/mil_dreams_aligned.mid", 'wb')
     aligned_midi.write_to_file(f)
 
     # verification
-    aligned_midi.read("stage-3/mil_dreams_aligned.mid")
+    aligned_midi.read("stage_3/mil_dreams_aligned.mid")
 
     # verify_header(base_midi)
     # verify_header(aligned_midi)

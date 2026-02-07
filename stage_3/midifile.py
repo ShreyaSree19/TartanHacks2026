@@ -359,6 +359,9 @@ class MidiFile:
             self.putvl(ntick - tick)
             self.write_event(ev)
             tick = ntick
+
+        self.status = -1
+        
         # write end of track
         self.putvl(1)
         self.put(0xff)
