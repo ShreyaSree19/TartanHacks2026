@@ -1,0 +1,11 @@
+yt-dlp[default]
+pyinstaller
+
+numpy<2.0.0
+pandas<2.0.0
+typer<0.4.0
+httpx<0.20.0
+ffmpeg-python<0.3.0
+norbert<0.3.0
+
+tensorflow==2.13.0
