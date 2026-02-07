@@ -182,7 +182,7 @@ def melody_main(original_audio_path, v_test_path):
         if os.path.exists(original_audio_path):
             # print(f"Reading {original_audio_path}...")
             y_30s, sr = librosa.load(original_audio_path, offset=60, duration=30)        
-            sf.write(v_test_path, y_30s, sr)
+            # sf.write(v_test_path, y_30s, sr)
             # sf.write(i_test_path, y_30s, sr) 
         else:
             print(f"Error: {original_audio_path} not found. Please place a file there.")
@@ -202,6 +202,8 @@ def melody_main(original_audio_path, v_test_path):
 
     except Exception as e:
         print(f"\nError during execution: {e}")
+    
+    return melody_file
     
     # finally:
         # CLEANUP: Remove the temporary 30s wav files
