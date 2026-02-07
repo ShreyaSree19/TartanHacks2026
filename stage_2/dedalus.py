@@ -1,4 +1,3 @@
-import asyncio
 from dedalus_labs import AsyncDedalus, DedalusRunner
 
 def get_input(song):
@@ -10,7 +9,7 @@ Time Signature: [number]/[number]
 
 song_name = ""
 
-async def main():
+async def dedalus_main():
     client = AsyncDedalus()
     runner = DedalusRunner(client)
 
@@ -21,10 +20,12 @@ async def main():
     )
 
     print(response.final_output)
+    
+    return response.final_output
 
-if __name__ == "__main__":
-    song_name = input("Enter the song name and movie or artist (e.g., 'A Million Dreams from the Greatest Showman'): ")
-    asyncio.run(main())
+# if __name__ == "__main__":
+#     # song_name = input("Enter the song name and movie or artist (e.g., 'A Million Dreams from the Greatest Showman'): ")
+#     asyncio.run(main())
 
 # chat_completion = client.chat.completions.create(
 #     model="openai/gpt-5-nano",
