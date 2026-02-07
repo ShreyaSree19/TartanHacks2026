@@ -27,23 +27,31 @@ def align_midi_ticks(midi, bpm, sixteenth, triplet_u):
     aligned._format = midi._format
     aligned._division = midi._division
     # aligned._tempoMap = midi._tempoMap
-    aligned._tempoMap[0] = 1000000.0 / bpm
+    
+    aligned._tempoMap = {}
+    aligned._tempoMap[0] = bpm / 60.0 # in units of beats per second
     aligned._tracks.clear()
 
     for og_track in midi._tracks:
         aligned._tracks.append(MidiTrack(aligned))
-        align_click = 0
+        align_click_acc = 0
 
         # 2) For each OG Track Event
-        for click, og_event in og_track.events().items():
-            print(click)
+        for click, og_event in sorted(og_track.events().items()):
             # og_track_tempo = midi._tempoMap[click]
-            og_track_tempo = midi._tempoMap[0] # assuming for now the base midi don't change tempo
+            # og_track_tempo = 1000000.0 / midi._tempoMap[0] # assuming for now the base midi don't change tempo
+            og_tempo_raw = None
+            try:
+                og_tempo_raw = midi._tempoMap.get(click, midi._tempoMap.get(0, None))
+            except Exception:
+                og_tempo_raw = None
+
+            og_track_tempo = 120.0 # assuming for now the base midi don't change tempo
+            if og_tempo_raw is not None:
+                og_track_tempo = 1000000.0 / og_tempo_raw # convert microminutes to BPM
 
             # a) Convert delta ticks to seconds using track tempo
-            # b) Round the event delta to multiple of 16th note duration
-            # c) Round the event delta to multiple of "12th note" duration
-            # d) Compare, use more accurate one
+            # b/c/d) Round to nearest 16th note or triple unit
             og_seconds = ticks_to_seconds(click, og_track_tempo, midi._division)
             track_16th = round_to_unit(og_seconds, sixteenth)
             track_12th = round_to_unit(og_seconds, triplet_u)
@@ -55,10 +63,12 @@ def align_midi_ticks(midi, bpm, sixteenth, triplet_u):
 
             # e) Convert delta time to ticks in new tempo
             # f) Create new track event
-            new_ticks = seconds_to_ticks(rounded_seconds, bpm, midi._division)
-            aligned._tracks[len(aligned._tracks) - 1].events()[align_click] = og_event
+            new_tick_delta = seconds_to_ticks(rounded_seconds, bpm, midi._division)
+            print(click, "->", new_tick_delta)
+            aligned._tracks[-1].events()[align_click_acc + new_tick_delta] = og_event
+            align_click_acc += new_tick_delta
+            aligned._tempoMap[align_click_acc] = 1000000.0 / bpm            
             
-            align_click += new_ticks
     aligned.status = midi.status
     aligned.sstatus = midi.sstatus
     print(midi._division)
