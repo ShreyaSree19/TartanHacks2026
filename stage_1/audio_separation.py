@@ -2,12 +2,14 @@ from pathlib import Path
 import yt_dlp
 import subprocess
 
-# need to have installed yt-dlp (found in requirements.txt)
-def url_to_mp3():
-    print("Url:", end = " ")
-    url = input()
+BASE_DIR = Path(__file__).parent
 
-    out_dir = Path("./mp3-files")
+# need to have installed yt-dlp (found in requirements.txt)
+def url_to_mp3(url):
+    # print("Url:", end = " ")
+    # url = input()
+
+    out_dir = BASE_DIR / "mp3-files"
     out_dir.mkdir(exist_ok=True)
     out_template = str(out_dir / "%(title)s.%(ext)s")
 
@@ -31,9 +33,10 @@ def url_to_mp3():
     return filename
 
 def mp3_to_wav(mp3_file):
+
     mp3_file = Path(mp3_file)
 
-    out_dir = Path("./wav-files")
+    out_dir = BASE_DIR / "wav-files"
     out_dir.mkdir(exist_ok=True)
 
     wav_file = out_dir / (mp3_file.stem + ".wav")
@@ -53,9 +56,10 @@ def mp3_to_wav(mp3_file):
 
 # spleeter requires python 3.10.xx or less
 def separate_with_spleeter(wav_file):
+
     wav_file = Path(wav_file)
 
-    out_dir = Path("./separated")
+    out_dir = BASE_DIR / "separated"
     out_dir.mkdir(exist_ok=True)
 
     cmd = [
@@ -66,7 +70,9 @@ def separate_with_spleeter(wav_file):
         str(wav_file)
     ]
 
-    subprocess.run(cmd, check=True)
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    print(result.stdout)
+    print(result.stderr)
 
     song_folder = out_dir / wav_file.stem
     vocals = song_folder / "vocals.wav"
@@ -78,8 +84,8 @@ def separate_with_spleeter(wav_file):
     return vocals, accompaniment
 
 
-def main():
-    mp3_file = url_to_mp3()
+def audio_separation(url):
+    mp3_file = url_to_mp3(url)
     wav_file = mp3_to_wav(mp3_file)
     vocals, accompaniment = separate_with_spleeter(wav_file)
 
@@ -87,5 +93,10 @@ def main():
     print("Vocals saved at:", vocals)
     print("Accompaniment saved at:", accompaniment)
 
+    # return vocals, accompaniment
+    return wav_file, vocals, accompaniment
+
+
 if __name__ == "__main__":
-    main()
+    url = input("Enter the song's Url from YouTube: ")
+    audio_separation(url)
