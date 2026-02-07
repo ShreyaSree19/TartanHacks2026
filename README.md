@@ -12,7 +12,6 @@ source spleeter310/bin/activate
 
 pip install --upgrade pip setuptools wheel
 
-# Install httpx first as a wheel
 python3.10 -m pip install --only-binary=:all: "httpx<0.20.0"
 
 pip install -r requirements-macos.txt
@@ -28,6 +27,8 @@ python3.10 -m venv spleeter310
 source spleeter310/bin/activate
 
 pip install --upgrade pip setuptools wheel
+
+python3.10 -m pip install --only-binary=:all: "httpx<0.20.0"
 
 pip install -r requirements-windows.txt
 
