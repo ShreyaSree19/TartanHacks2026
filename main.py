@@ -5,8 +5,8 @@ from stage_2.melody_extraction import melody_main
 
 
 def user_input():
-    song_name = input("Enter the song name and movie or artist "
-                      "(e.g., 'A Million Dreams from the Greatest Showman'): ")
+    # song_name = input("Enter the song name and movie or artist "
+                    #   "(e.g., 'A Million Dreams from the Greatest Showman'): ")
     url = input("Enter the song's Url from YouTube: ")
 
     original, vocals, accompaniment = audio_separation(url)
