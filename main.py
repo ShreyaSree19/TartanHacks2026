@@ -1,6 +1,6 @@
 import asyncio
 from stage_1.audio_separation import audio_separation
-from stage_2.dedalus import dedalus_main
+# from stage_2.dedalus import dedalus_main
 from stage_2.melody_extraction import melody_main
 
 
